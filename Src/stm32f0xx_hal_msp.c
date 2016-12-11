@@ -33,6 +33,8 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
+extern DMA_HandleTypeDef hdma_rx;
+extern DMA_HandleTypeDef hdma_tx;
 
 extern void Error_Handler(void);
 /* USER CODE BEGIN 0 */
@@ -61,6 +63,52 @@ void HAL_MspInit(void)
 
   /* USER CODE END MspInit 1 */
 }
+
+void HAL_UART_MspInit(UART_HandleTypeDef* huart)
+{
+	GPIO_InitTypeDef GPIO_InitStruct;
+	if(huart->Instance == USART1)
+	{
+		GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_10;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pull = GPIO_PULLUP;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+		GPIO_InitStruct.Alternate = GPIO_AF1_USART1;
+
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct); 
+
+		hdma_tx.Instance	= DMA1_Channel2;
+		hdma_tx.Init.Direction	= DMA_MEMORY_TO_PERIPH;
+		hdma_tx.Init.PeriphInc	= DMA_PINC_DISABLE;
+		hdma_tx.Init.MemInc	= DMA_MINC_ENABLE;
+		hdma_tx.Init.PeriphDataAlignment= DMA_PDATAALIGN_BYTE;
+		hdma_tx.Init.MemDataAlignment	= DMA_MDATAALIGN_BYTE;
+		hdma_tx.Init.Mode	= DMA_NORMAL;
+		hdma_tx.Init.Priority	= DMA_PRIORITY_LOW;
+	
+		HAL_DMA_Init(&hdma_tx);
+		__HAL_LINKDMA(huart, hdmatx, hdma_tx);
+
+		hdma_rx.Instance	= DMA1_Channel3;
+		hdma_rx.Init.Direction	= DMA_PERIPH_TO_MEMORY;
+		hdma_rx.Init.PeriphInc	= DMA_PINC_DISABLE;
+		hdma_rx.Init.MemInc	= DMA_MINC_DISABLE;
+		hdma_rx.Init.PeriphDataAlignment= DMA_PDATAALIGN_BYTE;
+		hdma_rx.Init.MemDataAlignment	= DMA_MDATAALIGN_BYTE;
+		hdma_rx.Init.Mode	= DMA_CIRCULAR;
+		hdma_rx.Init.Priority	= DMA_PRIORITY_LOW;
+
+		HAL_DMA_Init(&hdma_rx);
+		__HAL_LINKDMA(huart, hdmarx, hdma_rx);
+
+		HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 1);
+		HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+
+		//	HAL_NVIC_SetPriority(USART1_IRQn, 0, 1);
+		//	HAL_NVIC_EnableIRQ(USART1_IRQn);
+	}
+}
+
 
 /* USER CODE BEGIN 1 */
 

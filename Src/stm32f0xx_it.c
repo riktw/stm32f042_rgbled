@@ -36,7 +36,7 @@
 #include "stm32f0xx_it.h"
 
 /* USER CODE BEGIN 0 */
-
+extern UART_HandleTypeDef UartHandle;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -68,6 +68,15 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /* USER CODE BEGIN 1 */
+void DMA1_Channel2_3_IRQHandler(void)
+{
+	HAL_DMA_IRQHandler(UartHandle.hdmarx);
+	HAL_DMA_IRQHandler(UartHandle.hdmatx);
+}
 
+void USART1_IRQHandler(void)
+{
+	HAL_UART_IRQHandler(&UartHandle);
+}
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

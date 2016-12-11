@@ -42,6 +42,14 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+UART_HandleTypeDef UartHandle;
+DMA_HandleTypeDef hdma_tx;
+DMA_HandleTypeDef hdma_rx;
+uint8_t txBuffer[] = "Hello computer\n";
+uint8_t rxBuffer;
+uint8_t erxBuffer[128];
+uint32_t rxCounter = 0;
+uint8_t UartDone = 0;
 
 /* USER CODE END PV */
 
@@ -52,7 +60,7 @@ static void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+void MX_UART1_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -79,19 +87,22 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
+  MX_UART1_Init();
+  HAL_Delay(100);
+  __HAL_UART_FLUSH_DRREGISTER(&UartHandle);
+  if(HAL_UART_Receive_DMA(&UartHandle, &rxBuffer, 1) != HAL_OK)
+  {
+	  while(1);
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-  /* USER CODE END WHILE */
-
+  /* USER CODE END WHILE */	
+  	HAL_Delay(10);
   /* USER CODE BEGIN 3 */
-  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-  HAL_Delay(250);
-  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-  HAL_Delay(250);
   }
   /* USER CODE END 3 */
 
@@ -182,6 +193,41 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void MX_UART1_Init(void)
+{
+
+	__HAL_RCC_USART1_CLK_ENABLE();
+	__HAL_RCC_DMA1_CLK_ENABLE();
+	UartHandle.Instance		= USART1;
+	UartHandle.Init.BaudRate	= 115200;
+	UartHandle.Init.WordLength	= UART_WORDLENGTH_8B;
+	UartHandle.Init.StopBits	= UART_STOPBITS_1;
+	UartHandle.Init.Parity		= UART_PARITY_NONE;
+	UartHandle.Init.HwFlowCtl	= UART_HWCONTROL_NONE;
+	UartHandle.Init.Mode		= UART_MODE_TX_RX;
+	UartHandle.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+	
+	if(HAL_UART_Init(&UartHandle) != HAL_OK)
+	{
+		while(1);
+	}
+
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+  	__HAL_UART_FLUSH_DRREGISTER(UartHandle);
+	if(rxBuffer == '\n')
+	{
+		rxCounter = 0;
+		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	}
+	else
+	{
+		erxBuffer[rxCounter] = rxBuffer;
+		rxCounter++;
+	}
+}
 /* USER CODE END 4 */
 
 /**
