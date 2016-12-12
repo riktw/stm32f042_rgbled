@@ -193,6 +193,18 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void HandleString(char* string, uint32_t length)
+{
+	if(strncmp(string, "LED ON", 6) == 0)
+	{
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+	}
+	else if(strncmp(string, "LED OFF", 7) == 0)
+	{
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+	}
+}
+
 void MX_UART1_Init(void)
 {
 
@@ -219,8 +231,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
   	__HAL_UART_FLUSH_DRREGISTER(UartHandle);
 	if(rxBuffer == '\n')
 	{
+		HandleString(erxBuffer, rxCounter);
 		rxCounter = 0;
-		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	}
 	else
 	{
