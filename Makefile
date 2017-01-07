@@ -20,7 +20,7 @@ OPT = -O0
 #######################################
 # Build path
 BUILD_DIR = build
-CUBE_DIR = ../STM32Cube_FW_F0_V1.7.0/
+CUBE_DIR = /home/rik/STM32Cube/Repository/STM32Cube_FW_F0_V1.7.0/
 DRIVER_DIR = $(CUBE_DIR)Drivers/STM32F0xx_HAL_Driver/
 ######################################
 # source
